@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+  <name>Add Background Layer</name>
+  <id>org.inkscape.render.layer_background</id>
+  
+  <param name="setcolor" type="color" gui-text="Choose color"></param>
+  <param name="name" type="description">Warning: Alpha value becomes black, please leave it at 100.</param>
+
+
+  <effect>
+    <object-type>all</object-type>
+    <effects-menu>
+      <submenu name="Layers">
+      </submenu>
+    </effects-menu>
+  </effect>
+  <script>
+    <command location="inx" interpreter="python">layer_background.py</command>
+  </script>
+</inkscape-extension>
