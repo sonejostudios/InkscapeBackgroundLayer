@@ -18,7 +18,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 """
-This extension creates a background layer and draws a rectangle with the document's size.
+This extension creates a background layer and draws a rectangle with the document's
+or viewBox's (if present) size.
 This extention is only compatible with Inkscape >= 1.0
 """
 
@@ -34,6 +35,18 @@ def draw_rect(x, y, w, h, stroke_width, fill, name):
     elem.set('inkscape:label', name)
     return elem
 
+def parse_viewbox(viewbox):
+    """Parse the specified viewbox string"""
+    if viewbox is None:
+        return None
+    try:
+        result = [float(coordinate) for coordinate in viewbox.split()]
+    except ValueError:
+        return None
+    if len(result) != 4:
+        return None
+    return result
+
 
 
 class DrawBackground(inkex.EffectExtension):
@@ -43,27 +56,35 @@ class DrawBackground(inkex.EffectExtension):
     def myrect(self):
         #Get options
         bgcolor = self.options.setcolor
-        
-        # Get access to main SVG document element and get its dimensions
+
+        # Get access to main SVG document element
         svg = self.document.getroot()
-        doc_width  = self.svg.unittouu(svg.get('width'))
-        doc_height = self.svg.unittouu(svg.get('height'))
-        
+        viewbox = parse_viewbox(svg.get('viewBox'))
+        if viewbox is None:
+            # if there is no viewbox, use the document dimensions
+            # to size the background
+            x = y = 0
+            width  = self.svg.unittouu(svg.get('width'))
+            height = self.svg.unittouu(svg.get('height'))
+        else:
+            # it there is a valid viewbox, use it to size (and position)
+            # the background
+            x, y, width, height = viewbox
+
         # Draw rectangle
-        return draw_rect(0, 0, doc_width, doc_height, 0, bgcolor, 'Background')
-        
-        
+        return draw_rect(x, y, width, height, 0, bgcolor, 'Background')
+
+
     def effect(self):
         # create locked background layer
         layer = self.svg.add(Group.new('Background', id='bglayer'))
         layer.set('inkscape:groupmode', 'layer')
         layer.set('sodipodi:insensitive', 'true')
-        
+
         # append background rectangle to layer
         layer.append(self.myrect())
 
-        
+
 
 if __name__ == '__main__':
     DrawBackground().run()
-    
